@@ -4,10 +4,11 @@ import tensorflow as tf
 import numpy as np
 
 ##################################### READ IN DATA #####################################
+
 # Make a queue of file names including all the JPEG images files in the relative
 # image directory.
-filename_queue = tf.train.string_input_producer(
-    tf.train.match_filenames_once('undercooked/*.jpg'))
+file_names = tf.train.match_filenames_once('undercooked/*.jpg')
+filename_queue = tf.train.string_input_producer(file_names)
 
 # Used to read the entire file
 file_reader = tf.WholeFileReader()
@@ -29,13 +30,23 @@ with tf.Session() as sess:
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
     
-    # Right now there are 20 images in our file "uncooked"
-    for i in range(20):
+    # seen = set()
+
+    # print len(file_names.eval())
+    # print len(set(file_names.eval()))
+
+    for i in range(len(file_names.eval())):
         # I think what happens when you call eval on either key or value, it will iterate both key and 
         # val to the next item in the queue. I tried calling key.eval and value.eval both and that fucked it up.
         # Key here is the file's name. Value is actually the file.
         file_name = key.eval()
         labels = file_name.split('-')
+
+        # if file_name in seen:
+            # print "seen:" +f ile_name
+        # else:
+            # seen.add(file_name)
+
         if labels[1] == 'AM': #'AM' stands for Asian Male, but I only have AM and AF currently in the file
             lab.append(1)
         else: # 0 for girls
@@ -50,19 +61,30 @@ with tf.Session() as sess:
 
     coord.request_stop()
     coord.join(threads)
-  
 
+length = len(data)
+split_index = int(length*.8)
 
-##################################### TRAIN AND TEST #####################################
+train_data = data[:split_index]
+train_labels = lab[:split_index]
 
-x = tf.placeholder(tf.float32, [5, 90000])
+test_data = data[split_index:]
+test_labels = lab[split_index:]
+
+BATCHSZ = 10
+EPOCHS = 40
+BATCHES = len(train_data)/BATCHSZ    
+
+##################################### BUILD THE MODEL #####################################
+
+x = tf.placeholder(tf.float32, [BATCHSZ, 90000])
 
 W = tf.Variable(tf.zeros([90000, 2]))
-b = tf.Variable(tf.zeros([5, 2]))
+b = tf.Variable(tf.zeros([BATCHSZ, 2]))
 
 
 y = tf.matmul(x, W) + b
-y_ = tf.placeholder(tf.int32, [5])
+y_ = tf.placeholder(tf.int32, [BATCHSZ])
 
 pred = tf.argmax(y, 1)
 
@@ -70,28 +92,44 @@ cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(y, y_)
 
 err  = tf.reduce_mean(cross_entropy)
 train_step = tf.train.GradientDescentOptimizer(1e-4).minimize(err)
-sess = tf.Session()
-init = tf.initialize_all_variables()
-sess.run(init)
+
+##################################### TEST AND TRAIN #####################################
+
+with tf.Session() as sess:
+    init = tf.initialize_all_variables()
+    sess.run(init)
 
 
-#Weird indexing to make it train repeatedly on the first 15 datapts. The 200 batches here is arbitrary
+    print "###########TRAINING###########"
+    #You'll notice sometimes it learns a lot better than other times. Probably due to random initialization of weights
+    for i in range(EPOCHS):
+        for j in range(BATCHES):
 
-#You'll notice sometimes it learns a lot better than other times. Probably due to random initialization of weights
-for i in range(200):
-    #For indexing purposes
-    if i%4 == 3:
-        continue
-    t, bruce, prediction, c, error = sess.run([train_step, W, pred, cross_entropy, err], feed_dict={x: data[(i%4)*5:((i+1)%4)*5], y_: lab[(i%4)*5:((i+1)%4)*5]})
+            t, bruce, prediction, c, error = sess.run([train_step, W, pred, cross_entropy, err], feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ]})
+            
+            if j%100 == 0:
+                print "EPOCH:", i
+                print "BATCH:", j
+                print "ERROR:", error
+                print "------------"
     
-    if i%30 == 0:
-        print "batch", i
-        print "error", error
+
+    print "###########TESTING###########"
+    wrong = 0
+    test_increment = len(test_data)/BATCHSZ
+    for i in range(test_increment):
+        predicted_labels = sess.run(pred, feed_dict={x: test_data[i*BATCHSZ:(i+1)*BATCHSZ], y_: test_labels[i*BATCHSZ:(i+1)*BATCHSZ]})
+        correct_labels = test_labels[i*BATCHSZ:(i+1)*BATCHSZ]
+        print "PREDICTED LABELS:", predicted_labels
+        print "CORRECT LABELS:", correct_labels
         print "------------"
-    
-#Test on the last 5 datapts. 
-print "predicted", sess.run(pred, feed_dict={x: data[15:], y_: lab[15:]})
-print "correct", lab[15:]
+        for k in range(len(predicted_labels)):
+            if predicted_labels[k] != correct_labels[k]:
+                wrong += 1
+
+    print "TEST ACCURACY:", (len(predicted_labels)*test_increment - wrong)/float(len(predicted_labels)*test_increment)
+
+
 
 
 
