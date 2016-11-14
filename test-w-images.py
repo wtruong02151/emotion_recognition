@@ -17,6 +17,7 @@ file_reader = tf.WholeFileReader()
 # a key and value, that we can use to iterate through the entire file.
 key, value = file_reader.read(filename_queue)
 
+
 #Array to hold our image data and also our labels
 data = []
 lab = []
@@ -40,7 +41,7 @@ with tf.Session() as sess:
         # val to the next item in the queue. I tried calling key.eval and value.eval both and that fucked it up.
         # Key here is the file's name. Value is actually the file.
         file_name = key.eval()
-        labels = file_name.split('-')
+        labels = file_name.decode().split("-")
 
         # if file_name in seen:
             # print "seen:" +f ile_name
@@ -73,7 +74,7 @@ test_labels = lab[split_index:]
 
 BATCHSZ = 10
 EPOCHS = 40
-BATCHES = len(train_data)/BATCHSZ    
+BATCHES = int(len(train_data)/BATCHSZ)
 
 ##################################### BUILD THE MODEL #####################################
 
@@ -100,7 +101,7 @@ with tf.Session() as sess:
     sess.run(init)
 
 
-    print "###########TRAINING###########"
+    print("###########TRAINING###########")
     #You'll notice sometimes it learns a lot better than other times. Probably due to random initialization of weights
     for i in range(EPOCHS):
         for j in range(BATCHES):
@@ -108,26 +109,26 @@ with tf.Session() as sess:
             t, bruce, prediction, c, error = sess.run([train_step, W, pred, cross_entropy, err], feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ]})
             
             if j%100 == 0:
-                print "EPOCH:", i
-                print "BATCH:", j
-                print "ERROR:", error
-                print "------------"
+                print("EPOCH:", i)
+                print("BATCH:", j)
+                print("ERROR:", error)
+                print("------------")
     
 
-    print "###########TESTING###########"
+    print("###########TESTING###########")
     wrong = 0
-    test_increment = len(test_data)/BATCHSZ
+    test_increment = int(len(test_data)/BATCHSZ)
     for i in range(test_increment):
         predicted_labels = sess.run(pred, feed_dict={x: test_data[i*BATCHSZ:(i+1)*BATCHSZ], y_: test_labels[i*BATCHSZ:(i+1)*BATCHSZ]})
         correct_labels = test_labels[i*BATCHSZ:(i+1)*BATCHSZ]
-        print "PREDICTED LABELS:", predicted_labels
-        print "CORRECT LABELS:", correct_labels
-        print "------------"
+        print("PREDICTED LABELS:", predicted_labels)
+        print("CORRECT LABELS:", correct_labels)
+        print("------------")
         for k in range(len(predicted_labels)):
             if predicted_labels[k] != correct_labels[k]:
                 wrong += 1
 
-    print "TEST ACCURACY:", (len(predicted_labels)*test_increment - wrong)/float(len(predicted_labels)*test_increment)
+    print("TEST ACCURACY:", (len(predicted_labels)*test_increment - wrong)/float(len(predicted_labels)*test_increment))
 
 
 
