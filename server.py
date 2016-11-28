@@ -198,7 +198,7 @@ def callNet():
 	with tf.Session() as sess:
 		init = tf.initialize_all_variables()
 		sess.run(init)
-		
+
 		print("###########TESTING###########")
 		wrong = 0
 		test_increment = int(len(test_data)/BATCHSZ)
