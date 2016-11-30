@@ -19,7 +19,7 @@ def max_pool_2x2(x):
 
 # Make a queue of file names including all the JPEG images files in the relative
 # image directory.
-file_names = tf.train.match_filenames_once('full_set/*.jpg')
+file_names = tf.train.match_filenames_once('me/*.jpg')
 filename_queue = tf.train.string_input_producer(file_names)
 
 # Used to read the entire file
@@ -68,7 +68,7 @@ with tf.Session() as sess:
         # else: # 0 for girls
         #     lab.append([0, 1])
 
-        # [Happy Open, Happy Closed, Angry, Neutral, Fear]
+        # [Happy Open, Happy Closed, Neutral, Anger, Fear]
         image_emotion = labels[4][:-4]
         if (image_emotion == 'HO'):
             lab.append([1, 0, 0, 0, 0])
