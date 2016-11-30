@@ -43,7 +43,7 @@ with tf.Session() as sess:
 
     seen = set()
 
-    print len(file_names.eval())
+    # print(len(file_names.eval()))
     # print len(set(file_names.eval()))
 
     for i in range(len(file_names.eval())):
@@ -53,8 +53,8 @@ with tf.Session() as sess:
         file_name = key.eval()
         labels = file_name.decode().split("-")
 
-        if (i % 100 == 0):
-            print(i)
+        # if (i % 100 == 0):
+            # print(i)
 
         if file_name in seen:
             print("seen:") + file_name
@@ -62,10 +62,24 @@ with tf.Session() as sess:
             seen.add(file_name)
 
         #  [male, female]
-        if labels[1][1] == 'M': #'AM' stands for Asian Male, but I only have AM and AF currently in the file
-            lab.append([1, 0])
-        else: # 0 for girls
-            lab.append([0, 1])
+        # labels[1][1] is race and sex
+        # if labels[1][1] == 'M': #'AM' stands for Asian Male, but I only have AM and AF currently in the file
+        #     lab.append([1, 0])
+        # else: # 0 for girls
+        #     lab.append([0, 1])
+
+        # [Happy Open, Happy Closed, Angry, Neutral, Fear]
+        image_emotion = labels[4][:-4]
+        if (image_emotion == 'HO'):
+            lab.append([1, 0, 0, 0, 0])
+        else if (image_emotion == 'HC'):
+            lab.append([0, 1, 0, 0, 0])
+        else if (image_emotion == 'N'):
+            lab.append([0, 0, 1, 0, 0])
+        else if (image_emotion == 'A'):
+            lab.append([0, 0, 0, 1, 0])
+        else if (image_emotion == 'F'):
+            lab.append([0, 0, 0, 0, 1])
 
         # Read the in the image and decode it. It might be possible here to use "value" instead of,
         # but I'm not sure. You guys can mess with it.
@@ -100,11 +114,11 @@ BATCHES = len(train_data)/BATCHSZ
 
 x = tf.placeholder(tf.float32, shape=[None, 784])
 # y_ = tf.placeholder(tf.float32, shape=[None, 10])
-y_ = tf.placeholder(tf.float32, shape=[None, 2])
+y_ = tf.placeholder(tf.float32, shape=[None, 5])
 # W = tf.Variable(tf.zeros([784,10]))
-W = tf.Variable(tf.zeros([784,2]))
+W = tf.Variable(tf.zeros([784,5]))
 # b = tf.Variable(tf.zeros([10]))
-b = tf.Variable(tf.zeros([2]))
+b = tf.Variable(tf.zeros([5]))
 y = tf.matmul(x,W) + b
 
 W_conv1 = weight_variable([5, 5, 1, 32])
@@ -130,8 +144,8 @@ h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-W_fc2 = weight_variable([1024, 2])
-b_fc2 = bias_variable([2])
+W_fc2 = weight_variable([1024, 5])
+b_fc2 = bias_variable([5])
 
 y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
@@ -173,5 +187,5 @@ with tf.Session() as sess:
         else:
             print("No checkpoint found.")
 
-    print "###########TESTING###########"
+    print("###########TESTING###########")
     print("test accuracy %g"%accuracy.eval(feed_dict={x: test_data, y_: test_labels, keep_prob : 1.0}))
