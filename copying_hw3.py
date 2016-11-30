@@ -19,7 +19,7 @@ def max_pool_2x2(x):
 
 # Make a queue of file names including all the JPEG images files in the relative
 # image directory.
-file_names = tf.train.match_filenames_once('full_set/*.jpg')
+file_names = tf.train.match_filenames_once('me/*.jpg')
 filename_queue = tf.train.string_input_producer(file_names)
 
 # Used to read the entire file
@@ -84,8 +84,13 @@ split_index = int(length*.8)
 train_data = data[:split_index]
 train_labels = lab[:split_index]
 
+# Changethis to be equal to data/lab if you aren't training
 test_data = data[split_index:]
 test_labels = lab[split_index:]
+
+test_data = data
+test_labels = lab
+
 print (test_labels)
 
 BATCHSZ = 10
@@ -135,33 +140,38 @@ train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+# Use TF's Saver class to save TF Variables and tensors (like our weights and biases)
+saver = tf.train.Saver()
+# Temp variable to determine if network should train or not (should be passed in as a parameter when running the script))
+train = False
+# Path to checkpoint files
+checkpoint_path = "../emotion_recognition/"
 ##################################### TEST AND TRAIN #####################################
 
 with tf.Session() as sess:
     init = tf.initialize_all_variables()
     sess.run(init)
 
+    if (train):
+        print("###########TRAINING###########")
+        #You'll notice sometimes it learns a lot better than other times. Probably due to random initialization of weights
+        for i in range(EPOCHS):
 
-    print("###########TRAINING###########")
-    #You'll notice sometimes it learns a lot better than other times. Probably due to random initialization of weights
-    for i in range(EPOCHS):
-        for j in range(BATCHES):
-            train_accuracy = accuracy.eval(feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ], keep_prob : 1.0})
-            print("step %d, training accuracy %g"%(i, train_accuracy))
-            train_step.run(feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ], keep_prob : .5})
+            # Save TF variables every two epochs
+            if (i % 2 == 0):
+                saver.save(sess, checkpoint_path + "my_model.ckpt", global_step=i)
+
+            for j in range(BATCHES):
+                train_accuracy = accuracy.eval(feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ], keep_prob : 1.0})
+                print("step %d, training accuracy %g"%(i, train_accuracy))
+                train_step.run(feed_dict={x: train_data[j*BATCHSZ:(j+1)*BATCHSZ], y_: train_labels[j*BATCHSZ:(j+1)*BATCHSZ], keep_prob : .5})
+    else:
+        checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
+        # I think by default this loads the latest checkpoint... not sure though
+        if checkpoint and checkpoint.model_checkpoint_path:
+            saver.restore(sess, checkpoint.model_checkpoint_path)
+        else:
+            print("No checkpoint found.")
 
     print "###########TESTING###########"
     print("test accuracy %g"%accuracy.eval(feed_dict={x: test_data, y_: test_labels, keep_prob : 1.0}))
-
-
-    # correct = 0
-    # predicted_labels = sess.run(pred, feed_dict={x: test_data, y_: test_labels, keep_prob : 1})
-    # correct_labels = test_labels
-    # print "PREDICTED LABELS:", list(predicted_labels)
-    # print "CORRECT LABELS:  ", correct_labels
-    # print "------------"
-    # for k in range(len(predicted_labels)):
-    #     if predicted_labels[k] == correct_labels[k]:
-    #         correct += 1
-    #
-    # print "TEST ACCURACY:", (correct)/float(len(predicted_labels))
