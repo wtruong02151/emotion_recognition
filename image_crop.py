@@ -1,12 +1,30 @@
 import glob
 from PIL import Image
 
+def splitFilename(filename):
+    res = filename.split("/")
+    return res[1]
+
+useFullSet = True
+path  = ""
+cropped_path = ""
+
+if (useFullSet):
+    path = "full_set"
+    cropped_path = "cropped_full_set"
+else:
+    path = "me"
+    cropped_path = "cropped_me"
+
 
 i = 0
-for filename in glob.glob('full_set/*.jpg'):
+for filename in glob.glob(path + '/*.jpg'):
+    name = splitFilename(filename)
     original_image = Image.open(filename)
-    cropped_image = original_image.crop((850, 475, 1625, 1275))
-    cropped_image.save('cropped_full_set/' + str(i) + '.jpg')
+    width, height = original_image.size
+    left, top, right, bottom = int(width*0.345), int(height*0.276), int(width*0.665), int(height*0.742)
+    cropped_image = original_image.crop((left, top, right, bottom))
+    cropped_image.save(cropped_path + '/' + name)
     i += 1
 
     print(i)

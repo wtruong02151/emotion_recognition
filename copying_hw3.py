@@ -1,4 +1,5 @@
 import tensorflow as tf
+import sys
 
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.1)
@@ -19,7 +20,9 @@ def max_pool_2x2(x):
 
 # Make a queue of file names including all the JPEG images files in the relative
 # image directory.
-file_names = tf.train.match_filenames_once('me/*.jpg')
+file_names = tf.train.match_filenames_once('cropped_me/*.jpg')
+# Temp variable to determine if network should train or not (should be passed in as a parameter when running the script))
+train = False
 filename_queue = tf.train.string_input_producer(file_names)
 
 # Used to read the entire file
@@ -43,7 +46,7 @@ with tf.Session() as sess:
 
     seen = set()
 
-    # print(len(file_names.eval()))
+    # print len(file_names.eval())
     # print len(set(file_names.eval()))
 
     for i in range(len(file_names.eval())):
@@ -53,7 +56,7 @@ with tf.Session() as sess:
         file_name = key.eval()
         labels = file_name.decode().split("-")
 
-        if (i % 100 == 0):
+        if (i % 100 == 0 and i != 0):
             print(i)
 
         if file_name in seen:
@@ -68,8 +71,9 @@ with tf.Session() as sess:
         # else: # 0 for girls
         #     lab.append([0, 1])
 
-        # [Happy Open, Happy Closed, Neutral, Anger, Fear]
-        image_emotion = labels[4][:-4]
+        # [Happy Open, Happy Closed, Neutral, Angry, Fear]
+        image_emotion = labels[4][:-4].split('.')[0]
+        print(image_emotion)
         if (image_emotion == 'HO'):
             lab.append([1, 0, 0, 0, 0])
         elif (image_emotion == 'HC'):
@@ -80,6 +84,9 @@ with tf.Session() as sess:
             lab.append([0, 0, 0, 1, 0])
         elif (image_emotion == 'F'):
             lab.append([0, 0, 0, 0, 1])
+        else:
+            print('ERROR: UNEXPECTED LABEL RECEIVED')
+            sys.exit()
 
         # Read the in the image and decode it. It might be possible here to use "value" instead of,
         # but I'm not sure. You guys can mess with it.
@@ -93,17 +100,17 @@ with tf.Session() as sess:
 
 print("done")
 length = len(data)
-split_index = int(length*.8)
+split_index = int(length*.9)
 
 train_data = data[:split_index]
 train_labels = lab[:split_index]
 
 # Changethis to be equal to data/lab if you aren't training
-test_data = data[split_index:]
-test_labels = lab[split_index:]
+# test_data = data[split_index:]
+# test_labels = lab[split_index:]
 
-# test_data = data
-# test_labels = lab
+test_data = data
+test_labels = lab
 
 print (test_labels)
 
@@ -152,12 +159,11 @@ y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_conv, y_))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
+model_prediction = tf.argmax(y_conv,1)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # Use TF's Saver class to save TF Variables and tensors (like our weights and biases)
 saver = tf.train.Saver()
-# Temp variable to determine if network should train or not (should be passed in as a parameter when running the script))
-train = False
 # Path to checkpoint files
 checkpoint_path = "../emotion_recognition/"
 ##################################### TEST AND TRAIN #####################################
@@ -187,5 +193,6 @@ with tf.Session() as sess:
         else:
             print("No checkpoint found.")
 
-    print("###########TESTING###########")
+    print "###########TESTING###########"
     print("test accuracy %g"%accuracy.eval(feed_dict={x: test_data, y_: test_labels, keep_prob : 1.0}))
+    print(sess.run(model_prediction, feed_dict={x: test_data, keep_prob : 1.0}))
