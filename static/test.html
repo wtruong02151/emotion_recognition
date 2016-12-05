@@ -27,7 +27,27 @@
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 success: function(response, status) {
-                    console.log(response.results[0]);
+                    console.log(status.decision)
+                    decision = response.results[0]
+                    switch(decision) {
+                        case 0:
+                            console.log('Happy Open Face')
+                            break;
+                        case 1:
+                            console.log('Happy Closed Face')
+                            break;
+                        case 2:
+                            console.log('Neutral Face')
+                            break;
+                        case 3:
+                            console.log('Angry Face')
+                            break;
+                        case 4:
+                            console.log('Fear Face')
+                            break;
+                    }
+
+                    alert(status);
                 }
             })
 
