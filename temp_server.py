@@ -1,5 +1,5 @@
 # Typical setup to include TensorFlow.
-import model
+import tensor.model as model
 import numpy as np
 import tensorflow as tf
 import sys
@@ -7,26 +7,22 @@ from base64 import decodestring
 from flask import Flask, request, render_template, jsonify, send_from_directory
 from PIL import Image
 
-sys.path.append('static')
-
 app = Flask(__name__, static_url_path ='', template_folder='static/')
 
-x = tf.placeholder("float", [None, 784])
+x = tf.placeholder("float", [None, 992])
 sess = tf.Session()
 
 with tf.variable_scope("convolutional"):
     keep_prob = tf.placeholder("float")
     y2, variables = model.convolutional(x, keep_prob)
-    checkpoint = tf.train.get_checkpoint_state("../emotion_recognition/static/")
-    saver = tf.train.Saver()
-
-if (checkpoint):
-    saver.restore(sess, checkpoint.model_checkpoint_path)
-else:
-    print("fock me")
+checkpoint = tf.train.get_checkpoint_state("../emotion_recognition/static/")
+saver = tf.train.Saver(variables)
+saver.restore(sess, checkpoint.model_checkpoint_path)
 
 def convolutional(input):
-    return sess.run(y2, feed_dict={x: input, keep_prob: 1.0}).flatten().tolist()
+    vector = sess.run(y2, feed_dict={x: input, keep_prob: 1.0})
+    decision = np.argmax(vector)
+    return decision
 
 def crop_image(filename):
     original_image = Image.open(filename)
@@ -64,8 +60,8 @@ def read_image(file_path):
             # Read the in the image and decode it. It might be possible here to use "value" instead of,
             # but I'm not sure. You guys can mess with it.
             my_img =  tf.image.decode_jpeg(tf.read_file(file_name), channels=1)
-            image = tf.image.resize_images(my_img, 28, 28)
-            leh = tf.reshape(image, [1, 784])
+            image = tf.image.resize_images(my_img, 31, 32)
+            leh = tf.reshape(image, [1, 992])
             data.append(leh.eval()[0])
 
         coord.request_stop()
@@ -92,7 +88,9 @@ def convnet():
     data = read_image(image_path)
 
     ##################################### TEST AND TRAIN #####################################
-    print(convolutional(data))
+    decision = convolutional(data)
+
+    return jsonify(results=[decision])
 
 if __name__ == "__main__":
     app.run()

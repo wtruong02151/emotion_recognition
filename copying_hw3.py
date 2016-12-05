@@ -1,4 +1,5 @@
-import model
+import tensor.model
+import tensor.train
 import tensorflow as tf
 import sys
 
@@ -109,16 +110,12 @@ def train_and_test(data, lab, train_flag):
     train_labels = lab[:split_index]
 
     # Changethis to be equal to data/lab if you aren't training
-    # test_data = data[split_index:]
-    # test_labels = lab[split_index:]
-
-    test_data = data
-    test_labels = lab
+    test_data = data[split_index:]
+    test_labels = lab[split_index:]
 
     BATCHSZ = 10
     EPOCHS = 20
     BATCHES = len(train_data)/BATCHSZ
-
 
     x = tf.placeholder(tf.float32, shape=[None, 784])
     # y_ = tf.placeholder(tf.float32, shape=[None, 10])
@@ -127,7 +124,6 @@ def train_and_test(data, lab, train_flag):
     W = tf.Variable(tf.zeros([784,5]))
     # b = tf.Variable(tf.zeros([10]))
     b = tf.Variable(tf.zeros([5]))
-    y = tf.matmul(x,W) + b
 
     W_conv1 = weight_variable([5, 5, 1, 32])
     b_conv1 = bias_variable([32])

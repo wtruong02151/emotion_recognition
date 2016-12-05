@@ -9,7 +9,7 @@
 
 <script language="JavaScript">
     Webcam.attach( '#my_camera' );
-    
+
     function take_snapshot() {
         Webcam.snap( function(data_uri) {
             document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
@@ -27,7 +27,7 @@
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 success: function(response, status) {
-                    alert(status);
+                    console.log(response.results[0]);
                 }
             })
 
