@@ -1,0 +1,38 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="webcam.js"></script>
+</head>
+
+
+<div id="my_camera" style="width:320px; height:240px;"></div>
+<div id="my_result"></div>
+
+<script language="JavaScript">
+    Webcam.attach( '#my_camera' );
+    
+    function take_snapshot() {
+        Webcam.snap( function(data_uri) {
+            document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
+
+            data = {'data_uri': data_uri}
+
+            // $.post("http://127.0.0.1:5000/api/conv", JSON.stringify(data), function(response, status){
+            //     alert("Data: " + response + "\nStatus: " + status);
+            // })
+
+            $.ajax({
+                url: "http://127.0.0.1:5000/api/conv",
+                type: "POST",
+                data: JSON.stringify(data),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(response, status) {
+                    alert(status);
+                }
+            })
+
+        } );
+    }
+</script>
+
+<a href="javascript:void(take_snapshot())">Take Snapshot</a>
