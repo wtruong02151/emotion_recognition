@@ -203,7 +203,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     file_path = sys.argv[1]
-    train_flag = sys.argv[2]
+    train_flag = True if sys.argv[2] == 'T' else False
 
     data, lab = read_in_data(file_path)
     train_and_test(data, lab, train_flag)
