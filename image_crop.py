@@ -5,7 +5,7 @@ def splitFilename(filename):
     res = filename.split("/")
     return res[1]
 
-useFullSet = True
+useFullSet = False
 path  = ""
 cropped_path = ""
 
