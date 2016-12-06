@@ -7,13 +7,13 @@ body {
 }
 #my_camera {
     margin: auto;
-    width:500px; 
+    width:500px;
     height:450px;
     border-style: solid;
 }
 
 #frame {
-    position: absolute; 
+    position: absolute;
     border-style: dotted;
     border-color: red;
     left: 350px;
@@ -31,10 +31,23 @@ body {
         <div id="frame"></div>
     </div>
 
+    <a href="javascript:void(take_snapshot())">Take Snapshot</a>
     <div id="my_result"></div>
 
     <script language="JavaScript">
         Webcam.attach( '#my_camera' );
+
+        Webcam.set({
+            width: 320,
+            height: 240,
+            dest_width: 640,
+            dest_height: 480,
+            image_format: 'jpeg',
+            jpeg_quality: 100,
+            fps: 45
+        });
+
+
 
         function take_snapshot() {
             Webcam.snap( function(data_uri) {
@@ -78,6 +91,4 @@ body {
             } );
         }
     </script>
-
-    <a href="javascript:void(take_snapshot())">Take Snapshot</a>
 </body>
