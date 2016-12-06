@@ -5,6 +5,7 @@
 body {
     width: 1000px;
 }
+
 #my_camera {
     margin: auto;
     width:500px;
@@ -32,22 +33,21 @@ body {
     </div>
 
     <a href="javascript:void(take_snapshot())">Take Snapshot</a>
+    <div id="result"></div>
     <div id="my_result"></div>
 
     <script language="JavaScript">
         Webcam.attach( '#my_camera' );
 
         Webcam.set({
-            width: 320,
-            height: 240,
+            width: 506,
+            height: 468,
             dest_width: 640,
             dest_height: 480,
             image_format: 'jpeg',
             jpeg_quality: 100,
             fps: 45
         });
-
-
 
         function take_snapshot() {
             Webcam.snap( function(data_uri) {
@@ -68,27 +68,32 @@ body {
                     success: function(response, status) {
                         console.log(status.decision)
                         decision = response.results[0]
+                        text = ""
                         switch(decision) {
                             case 0:
-                                console.log('Happy Open Face')
+                                text = 'Happy Open Face'
                                 break;
                             case 1:
-                                console.log('Happy Closed Face')
+                                text = 'Happy Closed Face'
                                 break;
                             case 2:
-                                console.log('Neutral Face')
+                                text = 'Neutral Face'
                                 break;
                             case 3:
-                                console.log('Angry Face')
+                                text = 'Angry Face'
                                 break;
                             case 4:
-                                console.log('Fear Face')
+                                text = 'Fear Face'
                                 break;
                         }
+                        $("#result").html(text);
                     }
                 })
 
             } );
         }
+
+
+        setInterval(function(){ take_snapshot(); }, 2000);
     </script>
 </body>
