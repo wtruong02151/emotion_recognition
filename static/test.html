@@ -24,10 +24,33 @@ body {
     z-index: 2;
 }
 
+#middle {
+    position: absolute;
+    border-left: 2px dotted red;
+    left: 503px;
+    top: 75px;
+    width: 306px;
+    height: 306px;
+    z-index: 2;
+}
+
 #result {
     width: 200px;
     display: block;
     margin: auto;
+}
+
+.startstop {
+    background-color: #85B0BE; 
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    margin: auto;
+    display: block;
 }
 </style>
 </head>
@@ -36,13 +59,17 @@ body {
     <div class="container">
         <div id="my_camera"></div>
         <div id="frame"></div>
+        <div id="middle"></div>
     </div>
 
     <a href="javascript:void(take_snapshot())">Take Snapshot</a>
     <div id="result"><img id="result_image" src=""></div>
+    <button class="startstop">Start</button>
     <!-- <div id="my_result"></div> -->
 
     <script language="JavaScript">
+        continueSnapping = false;
+
         Webcam.attach( '#my_camera' );
 
         Webcam.set({
@@ -53,6 +80,13 @@ body {
             image_format: 'jpeg',
             jpeg_quality: 100,
             fps: 45
+        });
+
+        
+        $( ".startstop" ).on('click', function() {
+            $('.startstop').html(continueSnapping ? 'Stop' : 'Start')
+            $('.startstop').css('background-color', continueSnapping ? '#DA2C43' : '#85B0BE')
+            continueSnapping = !continueSnapping;
         });
 
         function take_snapshot() {
@@ -101,6 +135,10 @@ body {
         }
 
 
-        setInterval(function(){ take_snapshot(); }, 2000);
+        setInterval(function(){ 
+            if (continueSnapping) {
+                take_snapshot(); 
+            }
+        }, 2000);
     </script>
 </body>
