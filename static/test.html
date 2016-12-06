@@ -1,56 +1,83 @@
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="webcam.js"></script>
+<style type="text/css">
+body {
+    width: 1000px;
+}
+#my_camera {
+    margin: auto;
+    width:500px; 
+    height:450px;
+    border-style: solid;
+}
+
+#frame {
+    position: absolute; 
+    border-style: dotted;
+    border-color: red;
+    left: 350px;
+    top: 75px;
+    width: 306px;
+    height: 306px;
+    z-index: 2;
+}
+</style>
 </head>
 
+<body>
+    <div class="container">
+        <div id="my_camera"></div>
+        <div id="frame"></div>
+    </div>
 
-<div id="my_camera" style="width:320px; height:240px;"></div>
-<div id="my_result"></div>
+    <div id="my_result"></div>
 
-<script language="JavaScript">
-    Webcam.attach( '#my_camera' );
+    <script language="JavaScript">
+        Webcam.attach( '#my_camera' );
 
-    function take_snapshot() {
-        Webcam.snap( function(data_uri) {
-            document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
+        function take_snapshot() {
+            Webcam.snap( function(data_uri) {
+                document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
 
-            data = {'data_uri': data_uri}
+                data = {'data_uri': data_uri}
 
-            // $.post("http://127.0.0.1:5000/api/conv", JSON.stringify(data), function(response, status){
-            //     alert("Data: " + response + "\nStatus: " + status);
-            // })
+                // $.post("http://127.0.0.1:5000/api/conv", JSON.stringify(data), function(response, status){
+                //     alert("Data: " + response + "\nStatus: " + status);
+                // })
 
-            $.ajax({
-                url: "http://127.0.0.1:5000/api/conv",
-                type: "POST",
-                data: JSON.stringify(data),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                success: function(response, status) {
-                    console.log(status.decision)
-                    decision = response.results[0]
-                    switch(decision) {
-                        case 0:
-                            console.log('Happy Open Face')
-                            break;
-                        case 1:
-                            console.log('Happy Closed Face')
-                            break;
-                        case 2:
-                            console.log('Neutral Face')
-                            break;
-                        case 3:
-                            console.log('Angry Face')
-                            break;
-                        case 4:
-                            console.log('Fear Face')
-                            break;
+                $.ajax({
+                    url: "http://127.0.0.1:5000/api/conv",
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(response, status) {
+                        console.log(status.decision)
+                        decision = response.results[0]
+                        switch(decision) {
+                            case 0:
+                                console.log('Happy Open Face')
+                                break;
+                            case 1:
+                                console.log('Happy Closed Face')
+                                break;
+                            case 2:
+                                console.log('Neutral Face')
+                                break;
+                            case 3:
+                                console.log('Angry Face')
+                                break;
+                            case 4:
+                                console.log('Fear Face')
+                                break;
+                        }
                     }
-                }
-            })
+                })
 
-        } );
-    }
-</script>
+            } );
+        }
+    </script>
 
-<a href="javascript:void(take_snapshot())">Take Snapshot</a>
+    <a href="javascript:void(take_snapshot())">Take Snapshot</a>
+</body>
