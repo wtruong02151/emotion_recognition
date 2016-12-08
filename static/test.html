@@ -3,9 +3,8 @@
 <script src="webcam.js"></script>
 <style type="text/css">
 body {
-    width: 1000px;
+  min-width: 1000px;
 }
-
 #my_camera {
     margin: auto;
     width:500px;
@@ -15,28 +14,72 @@ body {
 
 #frame {
     position: absolute;
-    border-style: dotted;
-    border-color: red;
-    left: 350px;
-    top: 75px;
+    border: dotted red;
+    left: calc(50% - 160px);
+    top: 15.7%;
     width: 306px;
     height: 306px;
     z-index: 2;
+}
+
+#middle {
+    position: absolute;
+    border-left: 2px dotted red;
+    height: 306px;
+    top: 15.7%;
+    left: 50%;
+    z-index: 4;
+}
+
+#result {
+    width: 200px;
+    display: block;
+    margin: auto;
+    text-align: center;
+}
+
+#result_image {
+  display:block;
+  margin:auto;
+}
+
+.startstop {
+    margin-left:auto;
+    margin-right:auto;
+    margin-top: 10px;
+    background-color: #85B0BE;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    display: block;
+}
+
+h1 {
+  text-align: center;
+  font-family: monospace;
 }
 </style>
 </head>
 
 <body>
+    <h1>Emotibot</h1>
     <div class="container">
         <div id="my_camera"></div>
         <div id="frame"></div>
+        <div id="middle"></div>
     </div>
 
-    <a href="javascript:void(take_snapshot())">Take Snapshot</a>
+    <button class="startstop">Start</button>
     <div id="result"></div>
-    <div id="my_result"></div>
+    <img id="result_image" src="images/blank.png" width=200px>
 
     <script language="JavaScript">
+        continueSnapping = false;
+
         Webcam.attach( '#my_camera' );
 
         Webcam.set({
@@ -49,12 +92,20 @@ body {
             fps: 45
         });
 
+
+        $( ".startstop" ).on('click', function() {
+            $('.startstop').html(continueSnapping ? 'Start' : 'Stop')
+            $('.startstop').css('background-color', continueSnapping ? '#85B0BE' : '#DA2C43')
+            continueSnapping = !continueSnapping;
+            if (!continueSnapping) {
+              console.log('stop snapping')
+              $("#result_image").attr("src","images/blank.png");
+            }
+        });
+
         function take_snapshot() {
             Webcam.snap( function(data_uri) {
-                document.getElementById('my_result').innerHTML = '<img src="'+data_uri+'"/>';
-
                 data = {'data_uri': data_uri}
-
                 // $.post("http://127.0.0.1:5000/api/conv", JSON.stringify(data), function(response, status){
                 //     alert("Data: " + response + "\nStatus: " + status);
                 // })
@@ -66,7 +117,6 @@ body {
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'json',
                     success: function(response, status) {
-                        console.log(status.decision)
                         decision = response.results[0]
                         text = ""
                         switch(decision) {
@@ -86,14 +136,22 @@ body {
                                 text = 'Fear Face'
                                 break;
                         }
-                        $("#result").html(text);
+                        // $("#result").html(text);
+                        if (continueSnapping) {
+                          console.log(text)
+                          $("#result_image").attr("src", "images/" + text + ".png");
+                        } else {
+                          console.log('api recieved data after stop signal :(')
+                        }
                     }
                 })
 
             } );
         }
-
-
-        setInterval(function(){ take_snapshot(); }, 2000);
+        setInterval(function(){
+            if (continueSnapping) {
+                take_snapshot();
+            }
+        }, 2500);
     </script>
 </body>
